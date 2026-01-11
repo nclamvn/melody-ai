@@ -15,6 +15,9 @@ import { MusicNote, AlignLeft, Book } from "iconoir-react";
 import { LyricLine } from "@/types";
 import { cleanSongTitle, cleanArtistName } from "@/utils/cleanSongTitle";
 import SongStoryPanel from "@/components/player/SongStoryPanel";
+import { AlbumStoryPlayer } from "@/components/album-story";
+import { MoodAura, EmotionParticles, detectMoodFromGenre, detectEmotionFromSong } from "@/components/visual";
+import { DJMixerPanel } from "@/components/dj";
 
 function PlayerContent() {
   const searchParams = useSearchParams();
@@ -37,6 +40,11 @@ function PlayerContent() {
   const rawArtist = safeDecodeURI(searchParams.get("artist") || "Unknown");
   const songCover = safeDecodeURI(searchParams.get("cover") || "");
   const youtubeId = searchParams.get("ytId") || songId;
+  const genre = safeDecodeURI(searchParams.get("genre") || "bolero");
+
+  // Detect mood and emotion from genre for visual effects
+  const mood = detectMoodFromGenre(genre);
+  const emotion = detectEmotionFromSong({ genre });
 
   // Clean up song title and artist for display
   const songTitle = cleanSongTitle(rawTitle);
@@ -54,6 +62,8 @@ function PlayerContent() {
   const [lyricsLoading, setLyricsLoading] = useState(false);
   const [showMobileStory, setShowMobileStory] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [showAlbumStory, setShowAlbumStory] = useState(false);
+  const [showDJMixer, setShowDJMixer] = useState(false);
 
   // Detect mobile
   useEffect(() => {
@@ -188,7 +198,7 @@ function PlayerContent() {
           top: "80px",
           left: 0,
           right: 0,
-          bottom: "140px", // Space for player controls
+          bottom: "180px", // Space for player controls
         }}
       >
         <AnimatePresence mode="wait">
@@ -211,6 +221,7 @@ function PlayerContent() {
                   songTitle={songTitle}
                   songArtist={songArtist}
                   onBack={() => setShowLyrics(false)}
+                  isKaraokeMode={isKaraokeMode}
                 />
               </div>
 
@@ -230,50 +241,63 @@ function PlayerContent() {
             /* Album Art View */
             <motion.div
               key="album"
-              className="h-full flex flex-col items-center justify-center"
+              className="h-full flex flex-col items-center justify-center relative"
               initial={{ opacity: 0, x: -100 }}
               animate={{ opacity: 1, x: 0 }}
               exit={{ opacity: 0, x: 100 }}
               transition={{ duration: 0.3 }}
             >
-              {/* Album Art */}
-              <motion.div
-                className="relative w-64 h-64 sm:w-80 sm:h-80 rounded-2xl overflow-hidden shadow-glass-lg mb-8"
-                animate={isPlaying ? { scale: [1, 1.02, 1] } : { scale: 1 }}
-                transition={{ duration: 2, repeat: isPlaying ? Infinity : 0 }}
-                style={{
-                  boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(91, 159, 255, 0.2)",
-                }}
-              >
-                {songCover ? (
-                  <Image
-                    src={songCover}
-                    alt={songTitle}
-                    fill
-                    className="object-cover"
-                    unoptimized
-                  />
-                ) : (
-                  <div className="w-full h-full bg-gradient-to-br from-aurora-blue/30 to-aurora-violet/30 flex items-center justify-center">
-                    <MusicNote className="w-24 h-24 text-white/50" />
-                  </div>
-                )}
-
-                {/* Shine overlay */}
-                <div
-                  className="absolute inset-0 pointer-events-none"
-                  style={{
-                    background: "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, transparent 100%)",
-                  }}
+              {/* Emotion Particles - Floating particles based on song emotion */}
+              {isPlaying && (
+                <EmotionParticles
+                  emotion={emotion}
+                  intensity={0.7}
+                  isActive={true}
                 />
+              )}
 
-                {/* Loading overlay */}
-                {!isReady && (
-                  <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-                    <div className="w-10 h-10 border-2 border-aurora-blue border-t-transparent rounded-full animate-spin" />
-                  </div>
-                )}
-              </motion.div>
+              {/* Album Art with MoodAura */}
+              <MoodAura mood={mood} isPlaying={isPlaying} size={380}>
+                <motion.div
+                  className="relative w-64 h-64 sm:w-80 sm:h-80 rounded-2xl overflow-hidden shadow-glass-lg"
+                  animate={isPlaying ? { scale: [1, 1.02, 1] } : { scale: 1 }}
+                  transition={{ duration: 2, repeat: isPlaying ? Infinity : 0 }}
+                  style={{
+                    boxShadow: "0 20px 60px rgba(0, 0, 0, 0.5), 0 0 40px rgba(91, 159, 255, 0.2)",
+                  }}
+                >
+                  {songCover ? (
+                    <Image
+                      src={songCover}
+                      alt={songTitle}
+                      fill
+                      className="object-cover"
+                      unoptimized
+                    />
+                  ) : (
+                    <div className="w-full h-full bg-gradient-to-br from-aurora-blue/30 to-aurora-violet/30 flex items-center justify-center">
+                      <MusicNote className="w-24 h-24 text-white/50" />
+                    </div>
+                  )}
+
+                  {/* Shine overlay */}
+                  <div
+                    className="absolute inset-0 pointer-events-none"
+                    style={{
+                      background: "linear-gradient(135deg, rgba(255,255,255,0.2) 0%, transparent 50%, transparent 100%)",
+                    }}
+                  />
+
+                  {/* Loading overlay */}
+                  {!isReady && (
+                    <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
+                      <div className="w-10 h-10 border-2 border-aurora-blue border-t-transparent rounded-full animate-spin" />
+                    </div>
+                  )}
+                </motion.div>
+              </MoodAura>
+
+              <div className="h-8" /> {/* Spacer for MoodAura */}
 
               {/* Song info */}
               <div className="text-center max-w-lg">
@@ -286,7 +310,7 @@ function PlayerContent() {
               </div>
 
               {/* Action buttons */}
-              <div className="mt-6 flex items-center gap-3">
+              <div className="mt-6 flex items-center gap-3 flex-wrap justify-center">
                 <motion.button
                   onClick={() => setShowLyrics(true)}
                   className="flex items-center gap-2 px-4 py-2 text-callout chip-glass"
@@ -298,7 +322,16 @@ function PlayerContent() {
                 </motion.button>
 
                 <motion.button
-                  onClick={() => router.push("/synesthesia")}
+                  onClick={() => {
+                    const params = new URLSearchParams({
+                      id: songId || "",
+                      title: rawTitle,
+                      artist: rawArtist,
+                      cover: songCover,
+                      ytId: youtubeId || "",
+                    });
+                    router.push(`/synesthesia?${params.toString()}`);
+                  }}
                   className="flex items-center gap-2 px-4 py-2 text-callout chip-glass bg-gradient-to-r from-purple-500/20 to-blue-500/20 border-purple-500/30"
                   whileHover={{ scale: 1.05 }}
                   whileTap={{ scale: 0.95 }}
@@ -307,6 +340,31 @@ function PlayerContent() {
                     <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M9 19V6l12-3v13M9 19c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zm12-3c0 1.105-1.343 2-3 2s-3-.895-3-2 1.343-2 3-2 3 .895 3 2zM9 10l12-3" />
                   </svg>
                   Synesthesia
+                </motion.button>
+
+                <motion.button
+                  onClick={() => setShowAlbumStory(true)}
+                  className="flex items-center gap-2 px-4 py-2 text-callout chip-glass bg-gradient-to-r from-amber-500/20 to-orange-500/20 border-amber-500/30"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <Book className="w-4 h-4 text-amber-400" />
+                  Album Story
+                </motion.button>
+
+                <motion.button
+                  onClick={() => setShowDJMixer(true)}
+                  className="flex items-center gap-2 px-4 py-2 text-callout chip-glass bg-gradient-to-r from-pink-500/20 to-purple-500/20 border-pink-500/30"
+                  whileHover={{ scale: 1.05 }}
+                  whileTap={{ scale: 0.95 }}
+                >
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" className="text-pink-400">
+                    <path d="M4 21V14M4 10V3M12 21V12M12 8V3M20 21V16M20 12V3"/>
+                    <circle cx="4" cy="12" r="2"/>
+                    <circle cx="12" cy="10" r="2"/>
+                    <circle cx="20" cy="14" r="2"/>
+                  </svg>
+                  DJ Mixer
                 </motion.button>
               </div>
             </motion.div>
@@ -377,12 +435,49 @@ function PlayerContent() {
               volume={volume}
               onVolumeChange={setVolume}
               isKaraokeMode={isKaraokeMode}
-              onKaraokeModeToggle={() => setIsKaraokeMode(!isKaraokeMode)}
+              onKaraokeModeToggle={() => {
+                // Navigate to Synesthesia with karaoke mode
+                const params = new URLSearchParams({
+                  id: songId || "",
+                  title: rawTitle,
+                  artist: rawArtist,
+                  cover: songCover,
+                  ytId: youtubeId || "",
+                  karaoke: "true",
+                });
+                router.push(`/synesthesia?${params.toString()}`);
+              }}
               showVolume={false}
+              showAlbumStory={false}
             />
           </div>
         </div>
       </div>
+
+      {/* Album Story Overlay */}
+      <AnimatePresence>
+        {showAlbumStory && (
+          <AlbumStoryPlayer
+            songId={songId || ""}
+            title={rawTitle}
+            artist={rawArtist}
+            coverImage={songCover}
+            currentTime={currentTime}
+            onClose={() => setShowAlbumStory(false)}
+          />
+        )}
+      </AnimatePresence>
+
+      {/* DJ Mixer Panel */}
+      <AnimatePresence>
+        {showDJMixer && (
+          <DJMixerPanel
+            audioRef={{ current: null }}
+            isPlaying={isPlaying}
+            onClose={() => setShowDJMixer(false)}
+          />
+        )}
+      </AnimatePresence>
     </main>
   );
 }

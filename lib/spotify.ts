@@ -13,12 +13,10 @@ export interface SpotifyTrack {
 
 export async function searchSpotify(query: string): Promise<SpotifyTrack[]> {
   // TODO: Implement Spotify search when API keys are available
-  console.log('Spotify search placeholder:', query);
   return [];
 }
 
 export async function getTrackDetails(trackId: string): Promise<SpotifyTrack | null> {
   // TODO: Implement track details fetch
-  console.log('Spotify track details placeholder:', trackId);
   return null;
 }

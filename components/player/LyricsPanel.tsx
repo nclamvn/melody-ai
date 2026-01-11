@@ -12,6 +12,7 @@ interface LyricsPanelProps {
   songTitle?: string;
   songArtist?: string;
   onBack?: () => void;
+  isKaraokeMode?: boolean;
 }
 
 export default function LyricsPanel({
@@ -21,6 +22,7 @@ export default function LyricsPanel({
   songTitle,
   songArtist,
   onBack,
+  isKaraokeMode = false,
 }: LyricsPanelProps) {
   const containerRef = useRef<HTMLDivElement>(null);
   const activeLineRef = useRef<HTMLDivElement>(null);
@@ -63,7 +65,7 @@ export default function LyricsPanel({
       }}
     >
       {/* Header */}
-      <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+      <div className="flex items-center justify-between px-5 py-4">
         <div className="flex items-center gap-3 min-w-0 flex-1">
           <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center flex-shrink-0">
             <AlignLeft className="w-4 h-4 text-blue-400" strokeWidth={2} />
@@ -126,35 +128,45 @@ export default function LyricsPanel({
             {lyrics.map((line, index) => {
               const isActive = index === currentLineIndex;
               const isPast = index < currentLineIndex;
-              const distance = Math.abs(index - currentLineIndex);
 
-              // Higher opacity for better readability
-              let opacity = 0.6;
-              if (isActive) opacity = 1;
-              else if (distance === 1) opacity = 0.85;
-              else if (distance === 2) opacity = 0.7;
+              // Karaoke mode: highlight active, dim others
+              // Normal mode: all lines same style
+              if (isKaraokeMode) {
+                const distance = Math.abs(index - currentLineIndex);
+                let opacity = 0.4;
+                if (isActive) opacity = 1;
+                else if (distance === 1) opacity = 0.6;
+                else if (distance === 2) opacity = 0.5;
 
-              return (
-                <motion.div
-                  key={index}
-                  ref={isActive ? activeLineRef : null}
-                  animate={{ opacity }}
-                  transition={{ duration: 0.3, ease: "easeOut" }}
-                >
-                  <span
-                    className={`
-                      block leading-relaxed transition-all duration-300
-                      ${isActive
-                        ? "text-[17px] font-semibold text-white"
-                        : isPast
-                          ? "text-[15px] font-normal text-white/50"
-                          : "text-[15px] font-normal text-white/80"
-                      }
-                    `}
+                return (
+                  <motion.div
+                    key={index}
+                    ref={isActive ? activeLineRef : null}
+                    animate={{ opacity, scale: isActive ? 1.02 : 1 }}
+                    transition={{ duration: 0.3, ease: "easeOut" }}
                   >
+                    <span
+                      className={`
+                        block leading-relaxed transition-all duration-300
+                        ${isActive
+                          ? "text-[20px] font-bold text-white"
+                          : "text-[15px] font-normal text-white/70"
+                        }
+                      `}
+                    >
+                      {line.text}
+                    </span>
+                  </motion.div>
+                );
+              }
+
+              // Normal mode - all lyrics same style, no highlighting
+              return (
+                <div key={index}>
+                  <span className="block text-[15px] font-normal text-white/80 leading-relaxed">
                     {line.text}
                   </span>
-                </motion.div>
+                </div>
               );
             })}
             <div className="h-20" />

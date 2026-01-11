@@ -18,7 +18,7 @@ export async function GET(request: NextRequest) {
 
     return NextResponse.json(result);
   } catch (error) {
-    console.error('YouTube search API error:', error);
+    // Error handled silently
     return NextResponse.json(
       { success: false, videos: [], error: 'Search failed' },
       { status: 500 }

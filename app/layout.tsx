@@ -1,5 +1,6 @@
 import type { Metadata, Viewport } from "next";
 import "./globals.css";
+import { AppProvider } from "@/components/providers";
 
 export const metadata: Metadata = {
   title: "Melody AI — Tìm bài hát từ trí nhớ của bạn",
@@ -21,7 +22,9 @@ export default function RootLayout({
 }) {
   return (
     <html lang="vi" className="dark">
-      <body className="antialiased">{children}</body>
+      <body className="antialiased">
+        <AppProvider>{children}</AppProvider>
+      </body>
     </html>
   );
 }

@@ -76,9 +76,9 @@ export default function PlayerHeader({
           animate={{ opacity: 1, y: 0 }}
           exit={{ opacity: 0, y: -20 }}
           transition={{ duration: 0.3 }}
-          className="fixed top-0 left-0 right-0 z-50 p-4"
+          className="fixed top-0 left-0 right-0 z-50 px-4 py-4"
         >
-          <div className="max-w-4xl mx-auto flex items-center justify-between">
+          <div className="flex items-center justify-between">
             {/* Back Button */}
             <motion.button
               whileHover={{ scale: 1.1 }}

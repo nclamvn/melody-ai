@@ -123,7 +123,7 @@ export default function SongStoryPanel({
             )}
 
             {/* Header */}
-            <div className="flex items-center justify-between px-5 py-4 border-b border-white/10">
+            <div className="flex items-center justify-between px-5 py-4">
               <div className="flex items-center gap-3">
                 <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
                   <Book className="w-4 h-4 text-purple-400" strokeWidth={2} />
@@ -222,10 +222,18 @@ export default function SongStoryPanel({
 
                   {/* Sources Section */}
                   {story.sources && story.sources.length > 0 && (
-                    <div className="pt-4 border-t border-white/10">
+                    <div
+                      className="pt-4 px-4 pb-4 rounded-xl mt-2"
+                      style={{
+                        background: "linear-gradient(135deg, rgba(255,255,255,0.05) 0%, rgba(255,255,255,0.02) 100%)",
+                        backdropFilter: "blur(8px)",
+                        WebkitBackdropFilter: "blur(8px)",
+                        border: "1px solid rgba(255,255,255,0.08)",
+                      }}
+                    >
                       <div className="flex items-center gap-2 mb-3">
-                        <LinkIcon className="w-3.5 h-3.5 text-white/30" strokeWidth={2} />
-                        <span className="text-[11px] text-white/30">Nguồn tham khảo</span>
+                        <LinkIcon className="w-3.5 h-3.5 text-white/40" strokeWidth={2} />
+                        <span className="text-[11px] text-white/40">Nguồn tham khảo</span>
                       </div>
                       <div className="flex flex-wrap gap-2">
                         {story.sources.map((source, index) => (
@@ -235,10 +243,14 @@ export default function SongStoryPanel({
                             target="_blank"
                             rel="noopener noreferrer"
                             className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full
-                              bg-white/5 border border-white/10
-                              text-[11px] text-white/50
-                              hover:text-blue-400 hover:border-blue-400/30
+                              text-[11px] text-white/60
+                              hover:text-blue-400
                               transition-all duration-200"
+                            style={{
+                              background: "rgba(255,255,255,0.08)",
+                              border: "1px solid rgba(255,255,255,0.12)",
+                              backdropFilter: "blur(4px)",
+                            }}
                           >
                             <span>{source.name}</span>
                             <svg className="w-3 h-3" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -286,13 +298,28 @@ function CollapsibleSection({
   const color = colors[accentColor] || colors.blue;
 
   return (
-    <div className="bg-white/5 rounded-xl overflow-hidden">
+    <div
+      className="rounded-xl overflow-hidden"
+      style={{
+        background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)",
+        backdropFilter: "blur(12px)",
+        WebkitBackdropFilter: "blur(12px)",
+        border: "1px solid rgba(255,255,255,0.1)",
+        boxShadow: "0 4px 20px rgba(0,0,0,0.2), inset 0 1px 0 rgba(255,255,255,0.1)",
+      }}
+    >
       <button
         onClick={onToggle}
         className="w-full flex items-center justify-between px-4 py-3 hover:bg-white/5 transition-colors"
       >
         <div className="flex items-center gap-3">
-          <div className={`w-7 h-7 rounded-lg ${color.bg} flex items-center justify-center ${color.text}`}>
+          <div
+            className={`w-7 h-7 rounded-lg flex items-center justify-center ${color.text}`}
+            style={{
+              background: `linear-gradient(135deg, ${accentColor === 'blue' ? 'rgba(59,130,246,0.3)' : accentColor === 'purple' ? 'rgba(168,85,247,0.3)' : 'rgba(34,211,238,0.3)'} 0%, ${accentColor === 'blue' ? 'rgba(59,130,246,0.1)' : accentColor === 'purple' ? 'rgba(168,85,247,0.1)' : 'rgba(34,211,238,0.1)'} 100%)`,
+              boxShadow: `0 0 15px ${accentColor === 'blue' ? 'rgba(59,130,246,0.3)' : accentColor === 'purple' ? 'rgba(168,85,247,0.3)' : 'rgba(34,211,238,0.3)'}`,
+            }}
+          >
             {icon}
           </div>
           <span className="text-[13px] font-medium text-white">{title}</span>
@@ -337,7 +364,16 @@ function LoadingSkeleton() {
   return (
     <div className="space-y-4">
       {[1, 2, 3].map((i) => (
-        <div key={i} className="bg-white/5 rounded-xl p-4 space-y-3">
+        <div
+          key={i}
+          className="rounded-xl p-4 space-y-3"
+          style={{
+            background: "linear-gradient(135deg, rgba(255,255,255,0.08) 0%, rgba(255,255,255,0.03) 100%)",
+            backdropFilter: "blur(12px)",
+            WebkitBackdropFilter: "blur(12px)",
+            border: "1px solid rgba(255,255,255,0.1)",
+          }}
+        >
           <div className="flex items-center gap-3">
             <div className="w-7 h-7 rounded-lg bg-white/10 animate-pulse" />
             <div className="h-4 w-32 bg-white/10 rounded animate-pulse" />

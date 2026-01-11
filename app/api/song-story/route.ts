@@ -1,150 +1,251 @@
-import { NextRequest, NextResponse } from "next/server";
-import OpenAI from "openai";
+// ═══════════════════════════════════════════════════════════════════════════════
+//                    SONG STORY API — HYBRID APPROACH
+//                    Tier 1: Database → Tier 2: Cache → Tier 3: Internet + AI
+// ═══════════════════════════════════════════════════════════════════════════════
 
-const openai = new OpenAI({
-  apiKey: process.env.OPENAI_API_KEY,
-});
+import { NextRequest, NextResponse } from 'next/server';
+import { contentRouter } from '@/lib/services/contentRouter';
+import { detectGenre, formatSourcesForResponse, VietnameseGenre } from '@/lib/vietnameseMusic';
 
-interface SongStory {
-  story: string | null;
-  authorInfo: string | null;
-  songInfo: {
-    album?: string;
-    releaseYear?: string;
-    genre?: string;
-    awards?: string[];
-  };
-  sources: {
-    name: string;
-    url: string;
-  }[];
-  generatedAt: string;
+interface SongStoryRequest {
+  title: string;
+  artist: string;
+  forceRefresh?: boolean;
+  language?: string;
 }
 
 export async function POST(request: NextRequest) {
+  const startTime = Date.now();
+
   try {
-    const body = await request.json();
-    const { title, artist } = body;
+    const body: SongStoryRequest = await request.json();
+    const { title, artist, forceRefresh = false, language = 'vi' } = body;
 
     if (!title || !artist) {
       return NextResponse.json(
-        { success: false, error: "Missing title or artist" },
+        { success: false, error: 'Missing title or artist' },
         { status: 400 }
       );
     }
 
-    // Check if OpenAI API key exists
-    if (!process.env.OPENAI_API_KEY) {
+
+    // Detect genre for specialized content
+    const detectedGenre = detectGenre(title, artist);
+
+    // Use the content router for hybrid approach
+    const result = await contentRouter.getContent({
+      songTitle: title,
+      artistName: artist,
+      language,
+      forceRefresh,
+      maxWaitTime: 15000, // 15 seconds max
+    });
+
+    if (!result.success || !result.content) {
       return NextResponse.json({
         success: true,
-        data: generateStory(title, artist),
+        data: generateFallbackResponse(title, artist, detectedGenre),
+        source: 'fallback',
+        confidence: 'low',
+        detectedGenre,
+        meta: {
+          processingTime: Date.now() - startTime,
+        },
       });
     }
 
-    const prompt = `Bạn là chuyên gia âm nhạc Việt Nam. Hãy viết thông tin về bài hát "${title}" của ${artist}.
-
-QUAN TRỌNG: Luôn tạo nội dung hấp dẫn cho người đọc. Nếu không biết chính xác thì hãy viết nội dung phù hợp với thể loại nhạc và phong cách của nghệ sĩ.
-
-Trả về JSON với format sau (tiếng Việt):
-{
-  "story": "Viết 2-3 đoạn văn về hoàn cảnh ra đời, câu chuyện sáng tác, cảm hứng và ý nghĩa của bài hát. LUÔN PHẢI có nội dung.",
-  "authorInfo": "Viết 1-2 đoạn về tác giả/ca sĩ: thông tin cơ bản, phong cách âm nhạc, thành tựu nổi bật. LUÔN PHẢI có nội dung.",
-  "songInfo": {
-    "album": "Tên album hoặc Single",
-    "releaseYear": "Năm (ước tính nếu không biết chính xác)",
-    "genre": "Thể loại nhạc",
-    "awards": ["Giải thưởng nếu có"]
-  },
-  "sources": [
-    {"name": "Wikipedia", "url": "https://vi.wikipedia.org/wiki/..."},
-    {"name": "Zing MP3", "url": "https://zingmp3.vn"}
-  ]
-}
-
-Yêu cầu:
-- PHẢI có nội dung cho story và authorInfo (không được để trống hoặc null)
-- Viết tự nhiên, dễ đọc, hấp dẫn
-- Dùng tiếng Việt có dấu đầy đủ`;
-
-    const completion = await openai.chat.completions.create({
-      model: "gpt-4o-mini",
-      messages: [
-        {
-          role: "system",
-          content: "Bạn là chuyên gia âm nhạc sáng tạo. Luôn trả về JSON hợp lệ với đầy đủ nội dung. Không bao giờ để null cho story và authorInfo.",
-        },
-        {
-          role: "user",
-          content: prompt,
-        },
-      ],
-      temperature: 0.8,
-      max_tokens: 2000,
-    });
-
-    const responseText = completion.choices[0]?.message?.content || "";
-
-    let storyData: SongStory;
-    try {
-      const cleanedResponse = responseText
-        .replace(/```json\n?/g, "")
-        .replace(/```\n?/g, "")
-        .trim();
-
-      storyData = JSON.parse(cleanedResponse);
-      storyData.generatedAt = new Date().toISOString();
-
-      // Fallback nếu GPT trả về null
-      if (!storyData.story) {
-        storyData.story = generateStory(title, artist).story;
-      }
-      if (!storyData.authorInfo) {
-        storyData.authorInfo = generateStory(title, artist).authorInfo;
-      }
-    } catch {
-      console.error("Failed to parse GPT response, using fallback");
-      storyData = generateStory(title, artist);
-    }
+    // Format response based on content
+    const content = result.content;
 
     return NextResponse.json({
       success: true,
-      data: storyData,
+      data: {
+        story: content.compositionStory,
+        authorInfo: content.authorBio || `${content.artist} là nghệ sĩ của bài hát "${content.title}".`,
+        songInfo: {
+          album: 'Single',
+          releaseYear: content.releaseYear?.toString() || 'Không rõ',
+          genre: content.genres.join(', ') || detectedGenre,
+          awards: [],
+        },
+        summary: content.summary,
+        compositionContext: {
+          narrative: content.compositionStory,
+        },
+        historicalContext: content.historicalContext ? {
+          era: content.historicalContext,
+        } : null,
+        interestingFacts: content.facts,
+        sources: content.sources.length > 0
+          ? content.sources
+          : formatSourcesForResponse(detectedGenre, title, artist),
+        confidence: content.confidence,
+        generatedAt: content.synthesizedAt,
+      },
+      source: result.source,
+      confidence: content.confidence,
+      contentQuality: content.contentQuality,
+      detectedGenre,
+      meta: {
+        processingTime: result.processingTime,
+        cacheHit: result.cacheHit,
+        sourcesUsed: result.sourcesUsed,
+        warnings: result.warnings,
+      },
     });
-
   } catch (error) {
-    console.error("Song story API error:", error);
-    // Return fallback data instead of error
-    const { title, artist } = await request.clone().json();
-    return NextResponse.json({
-      success: true,
-      data: generateStory(title || "Unknown", artist || "Unknown"),
-    });
+    console.error('[SongStory API] Error:', error);
+
+    // Return fallback on error
+    try {
+      const { title, artist } = await request.clone().json();
+      const detectedGenre = detectGenre(title || 'Unknown', artist || 'Unknown');
+
+      return NextResponse.json({
+        success: true,
+        data: generateFallbackResponse(title || 'Unknown', artist || 'Unknown', detectedGenre),
+        source: 'fallback',
+        confidence: 'low',
+        meta: {
+          processingTime: Date.now() - startTime,
+          error: String(error),
+        },
+      });
+    } catch {
+      return NextResponse.json(
+        { success: false, error: 'Internal server error' },
+        { status: 500 }
+      );
+    }
   }
 }
 
-function generateStory(title: string, artist: string): SongStory {
+// Also support GET requests for simple queries
+export async function GET(request: NextRequest) {
+  const startTime = Date.now();
+
+  try {
+    const { searchParams } = new URL(request.url);
+    const title = searchParams.get('title');
+    const artist = searchParams.get('artist');
+    const language = searchParams.get('lang') || 'vi';
+    const forceRefresh = searchParams.get('refresh') === 'true';
+
+    if (!title) {
+      return NextResponse.json(
+        { success: false, error: 'Title is required' },
+        { status: 400 }
+      );
+    }
+
+
+    // Use the content router
+    const result = await contentRouter.getContent({
+      songTitle: title,
+      artistName: artist || undefined,
+      language,
+      forceRefresh,
+      maxWaitTime: 15000,
+    });
+
+    if (!result.success || !result.content) {
+      return NextResponse.json({
+        success: false,
+        error: 'Failed to retrieve song story',
+        meta: { processingTime: Date.now() - startTime },
+      }, { status: 404 });
+    }
+
+    const content = result.content;
+
+    return NextResponse.json({
+      success: true,
+      data: {
+        story: {
+          summary: content.summary,
+          compositionStory: content.compositionStory,
+          historicalContext: content.historicalContext,
+          facts: content.facts,
+        },
+        author: {
+          name: content.artist,
+          bio: content.authorBio || '',
+        },
+        song: {
+          title: content.title,
+          artist: content.artist,
+          releaseYear: content.releaseYear,
+          genres: content.genres,
+        },
+        sources: content.sources,
+      },
+      meta: {
+        source: result.source,
+        confidence: content.confidence,
+        contentQuality: content.contentQuality,
+        sourcesUsed: result.sourcesUsed.length,
+        processingTime: result.processingTime,
+        cacheHit: result.cacheHit,
+        synthesizedAt: content.synthesizedAt,
+      },
+    });
+  } catch (error) {
+    console.error('[Song Story API GET] Error:', error);
+
+    return NextResponse.json(
+      {
+        success: false,
+        error: 'Failed to retrieve song story',
+        meta: {
+          processingTime: Date.now() - startTime,
+        },
+      },
+      { status: 500 }
+    );
+  }
+}
+
+/**
+ * Generate fallback response when no data available
+ */
+function generateFallbackResponse(title: string, artist: string, genre: VietnameseGenre) {
+  const genreNames: Record<VietnameseGenre, string> = {
+    bolero: 'nhạc Bolero trữ tình',
+    tien_chien: 'tân nhạc tiền chiến',
+    dan_ca: 'dân ca Việt Nam',
+    nhac_do: 'nhạc cách mạng',
+    vpop: 'V-Pop đương đại',
+    indie: 'indie Việt Nam',
+    rap_viet: 'Rap Việt',
+    rock_viet: 'Rock Việt Nam',
+    nhac_tre: 'nhạc trẻ',
+    cai_luong: 'cải lương',
+    nhac_phim: 'nhạc phim',
+    unknown: 'âm nhạc Việt Nam',
+  };
+
+  const genreName = genreNames[genre] || genreNames.unknown;
+  const sources = formatSourcesForResponse(genre, title, artist);
+
   return {
-    story: `"${title}" là một trong những ca khúc đặc biệt trong sự nghiệp của ${artist}. Bài hát được sáng tác với cảm hứng từ những trải nghiệm cá nhân và cảm xúc chân thật của người nghệ sĩ.
+    story: `"${title}" là một ca khúc thuộc thể loại ${genreName} trong sự nghiệp của ${artist}.
 
-Với giai điệu da diết cùng ca từ sâu lắng, "${title}" nhanh chóng chinh phục trái tim người nghe. Ca khúc thể hiện tài năng âm nhạc đặc biệt của ${artist} trong việc kết hợp giữa âm nhạc hiện đại và những giá trị cảm xúc truyền thống.
+Hiện chưa có tài liệu chi tiết về hoàn cảnh sáng tác của bài hát này trong cơ sở dữ liệu của chúng tôi. Chúng tôi đang tiếp tục nghiên cứu và sẽ cập nhật khi có thông tin đáng tin cậy.`,
 
-Sau khi phát hành, bài hát đã nhận được sự đón nhận nồng nhiệt từ khán giả và đạt được thành tích ấn tượng trên các nền tảng nhạc số, khẳng định vị thế của ${artist} trong làng nhạc Việt.`,
+    authorInfo: `${artist} là nghệ sĩ hoạt động trong lĩnh vực ${genreName} của nền âm nhạc Việt Nam.
 
-    authorInfo: `${artist} là một trong những nghệ sĩ tài năng của nền âm nhạc Việt Nam đương đại. Với phong cách âm nhạc độc đáo và giọng hát đầy cảm xúc, ${artist} đã tạo nên nhiều tác phẩm được yêu thích.
-
-Sự nghiệp âm nhạc của ${artist} được đánh dấu bởi nhiều bản hit đình đám, mỗi ca khúc đều mang dấu ấn riêng biệt và thể hiện sự sáng tạo không ngừng. Nghệ sĩ được biết đến với khả năng truyền tải cảm xúc mạnh mẽ qua từng bài hát.`,
+Thông tin chi tiết về nghệ sĩ đang được cập nhật. Vui lòng tham khảo các nguồn chính thống để biết thêm.`,
 
     songInfo: {
-      album: "Single",
-      releaseYear: new Date().getFullYear().toString(),
-      genre: "V-Pop / Ballad",
-      awards: ["Top Trending"],
+      album: 'Đang cập nhật',
+      releaseYear: 'Không rõ',
+      genre: genreName,
+      awards: [],
     },
-    sources: [
-      { name: "Wikipedia", url: `https://vi.wikipedia.org/wiki/${encodeURIComponent(artist)}` },
-      { name: "Zing MP3", url: "https://zingmp3.vn" },
-      { name: "NhacCuaTui", url: "https://nhaccuatui.com" },
-    ],
+    interestingFacts: [],
+    sources,
+    confidence: 'low',
+    disclaimer: 'Thông tin về bài hát này còn hạn chế. Nếu bạn có tài liệu tham khảo, vui lòng đóng góp.',
     generatedAt: new Date().toISOString(),
   };
 }

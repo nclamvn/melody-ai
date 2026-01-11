@@ -77,7 +77,7 @@ export class AudioAnalyzer {
       };
     }
 
-    this.analyser.getByteFrequencyData(this.dataArray);
+    this.analyser.getByteFrequencyData(this.dataArray as Uint8Array<ArrayBuffer>);
 
     const sampleRate = this.audioContext.sampleRate;
     const binCount = this.analyser.frequencyBinCount;

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import OpenAI from 'openai';
 import { LyricLine } from '@/types';
+import { lyricsMetadataCache } from '@/lib/cache/lyricsMetadataCache';
 
 const LRCLIB_API = 'https://lrclib.net/api';
 
@@ -208,14 +209,12 @@ async function searchLyricsWithOpenAI(
   duration: number
 ): Promise<LyricLine[] | null> {
   if (!process.env.OPENAI_API_KEY) {
-    console.log('OpenAI API key not configured');
     return null;
   }
 
   try {
     // Use shorter, cleaner title for search
     const shortTitle = title.split(' - ')[0].trim();
-    console.log(`Searching lyrics with OpenAI for: "${shortTitle}" by "${artist}"`);
 
     const response = await openai.responses.create({
       model: 'gpt-4o-mini',
@@ -246,7 +245,6 @@ Output format: Just the lyrics text, one line per row, nothing else.`,
     }
 
     if (!lyricsText || lyricsText.length < 50) {
-      console.log('OpenAI returned insufficient lyrics');
       return null;
     }
 
@@ -264,7 +262,6 @@ Output format: Just the lyrics text, one line per row, nothing else.`,
 
     const lowerText = lyricsText.toLowerCase();
     if (refusalPatterns.some(pattern => lowerText.includes(pattern))) {
-      console.log('OpenAI refused due to copyright, skipping');
       return null;
     }
 
@@ -281,7 +278,6 @@ Output format: Just the lyrics text, one line per row, nothing else.`,
       });
 
     if (lines.length < 5) {
-      console.log('OpenAI returned too few lines:', lines.length);
       return null;
     }
 
@@ -296,10 +292,8 @@ Output format: Just the lyrics text, one line per row, nothing else.`,
       text,
     }));
 
-    console.log(`OpenAI found ${lyrics.length} lines of lyrics`);
     return lyrics;
-  } catch (error) {
-    console.error('OpenAI lyrics search error:', error);
+  } catch {
     return null;
   }
 }
@@ -360,8 +354,6 @@ export async function GET(request: NextRequest) {
     const shortTitle = possibleTitles.length > 1 ? possibleTitles[1] : possibleTitles[0];
     const cleanArtist = possibleArtists[0] || '';
 
-    console.log('Searching lyrics for:', shortTitle, 'by', cleanArtist);
-
     // Run LrcLib (quick) and OpenAI (fallback) in PARALLEL for speed
     const lrcLibPromise = quickLrcLibSearch(possibleTitles, possibleArtists);
     const openAIPromise = searchLyricsWithOpenAI(shortTitle, cleanArtist, dur);
@@ -385,7 +377,17 @@ export async function GET(request: NextRequest) {
     // If LrcLib found something
     if (result && 'syncedLyrics' in result) {
       const lrcResult = result as LrcLibResponse;
-      console.log('LrcLib found:', lrcResult.trackName);
+
+      // Store metadata in cache for Album Story to use
+      lyricsMetadataCache.store(title, artist || undefined, {
+        trackName: lrcResult.trackName,
+        artistName: lrcResult.artistName,
+        albumName: lrcResult.albumName,
+        duration: lrcResult.duration,
+        source: 'lrclib',
+        hasLyrics: !!(lrcResult.syncedLyrics || lrcResult.plainLyrics),
+      });
+
       if (lrcResult.syncedLyrics) {
         return NextResponse.json({
           success: true,
@@ -394,6 +396,7 @@ export async function GET(request: NextRequest) {
           source: 'lrclib',
           trackName: lrcResult.trackName,
           artistName: lrcResult.artistName,
+          albumName: lrcResult.albumName,
         });
       } else if (lrcResult.plainLyrics) {
         return NextResponse.json({
@@ -403,13 +406,22 @@ export async function GET(request: NextRequest) {
           source: 'lrclib',
           trackName: lrcResult.trackName,
           artistName: lrcResult.artistName,
+          albumName: lrcResult.albumName,
         });
       }
     }
 
     // If race returned OpenAI lyrics
     if (result && Array.isArray(result) && result.length > 0) {
-      console.log('OpenAI found lyrics first');
+
+      // Store metadata in cache
+      lyricsMetadataCache.store(title, artist || undefined, {
+        trackName: shortTitle,
+        artistName: cleanArtist,
+        source: 'openai',
+        hasLyrics: true,
+      });
+
       return NextResponse.json({
         success: true,
         lyrics: result,
@@ -421,9 +433,16 @@ export async function GET(request: NextRequest) {
     }
 
     // Wait for OpenAI if still pending
-    console.log('Waiting for OpenAI...');
     const openaiLyrics = await openAIPromise;
     if (openaiLyrics && openaiLyrics.length > 0) {
+      // Store metadata in cache
+      lyricsMetadataCache.store(title, artist || undefined, {
+        trackName: shortTitle,
+        artistName: cleanArtist,
+        source: 'openai',
+        hasLyrics: true,
+      });
+
       return NextResponse.json({
         success: true,
         lyrics: openaiLyrics,
@@ -435,7 +454,6 @@ export async function GET(request: NextRequest) {
     }
 
     // Final fallback: placeholder
-    console.log('Using placeholder lyrics');
     return NextResponse.json({
       success: true,
       lyrics: generatePlaceholderLyrics(shortTitle, cleanArtist, dur),
@@ -444,8 +462,7 @@ export async function GET(request: NextRequest) {
       trackName: shortTitle,
       artistName: cleanArtist,
     });
-  } catch (error) {
-    console.error('Lyrics API error:', error);
+  } catch {
     return NextResponse.json({
       success: true,
       lyrics: generatePlaceholderLyrics('Unknown', 'Unknown', 180),
