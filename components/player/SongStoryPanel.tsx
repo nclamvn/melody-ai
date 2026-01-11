@@ -37,7 +37,6 @@ export default function SongStoryPanel({
   const [story, setStory] = useState<SongStory | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  // Default expand story section
   const [expandedSection, setExpandedSection] = useState<string>("story");
 
   useEffect(() => {
@@ -293,6 +292,7 @@ function CollapsibleSection({
     blue: { bg: "bg-blue-500/20", text: "text-blue-400" },
     purple: { bg: "bg-purple-500/20", text: "text-purple-400" },
     cyan: { bg: "bg-cyan-500/20", text: "text-cyan-400" },
+    green: { bg: "bg-green-500/20", text: "text-green-400" },
   };
 
   const color = colors[accentColor] || colors.blue;
@@ -316,8 +316,23 @@ function CollapsibleSection({
           <div
             className={`w-7 h-7 rounded-lg flex items-center justify-center ${color.text}`}
             style={{
-              background: `linear-gradient(135deg, ${accentColor === 'blue' ? 'rgba(59,130,246,0.3)' : accentColor === 'purple' ? 'rgba(168,85,247,0.3)' : 'rgba(34,211,238,0.3)'} 0%, ${accentColor === 'blue' ? 'rgba(59,130,246,0.1)' : accentColor === 'purple' ? 'rgba(168,85,247,0.1)' : 'rgba(34,211,238,0.1)'} 100%)`,
-              boxShadow: `0 0 15px ${accentColor === 'blue' ? 'rgba(59,130,246,0.3)' : accentColor === 'purple' ? 'rgba(168,85,247,0.3)' : 'rgba(34,211,238,0.3)'}`,
+              background: `linear-gradient(135deg, ${
+                accentColor === 'blue' ? 'rgba(59,130,246,0.3)' :
+                accentColor === 'purple' ? 'rgba(168,85,247,0.3)' :
+                accentColor === 'green' ? 'rgba(34,197,94,0.3)' :
+                'rgba(34,211,238,0.3)'
+              } 0%, ${
+                accentColor === 'blue' ? 'rgba(59,130,246,0.1)' :
+                accentColor === 'purple' ? 'rgba(168,85,247,0.1)' :
+                accentColor === 'green' ? 'rgba(34,197,94,0.1)' :
+                'rgba(34,211,238,0.1)'
+              } 100%)`,
+              boxShadow: `0 0 15px ${
+                accentColor === 'blue' ? 'rgba(59,130,246,0.3)' :
+                accentColor === 'purple' ? 'rgba(168,85,247,0.3)' :
+                accentColor === 'green' ? 'rgba(34,197,94,0.3)' :
+                'rgba(34,211,238,0.3)'
+              }`,
             }}
           >
             {icon}

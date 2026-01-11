@@ -7,8 +7,8 @@ const STYLES: StyleConfig[] = [
   {
     id: 'aurora',
     name: 'Aurora',
-    nameVi: 'Cuc Quang',
-    description: 'Dai anh sang uon luon nhu cuc quang',
+    nameVi: 'Cực Quang',
+    description: 'Dải ánh sáng uốn lượn như cực quang Bắc Âu',
     icon: '',
     colors: {
       bass: '#6B21A8',
@@ -21,8 +21,8 @@ const STYLES: StyleConfig[] = [
   {
     id: 'particles',
     name: 'Particles',
-    nameVi: 'Hat Vu Tru',
-    description: 'Hang nghin hat phan ung theo am thanh',
+    nameVi: 'Hạt Vũ Trụ',
+    description: 'Hàng nghìn hạt sáng phản ứng theo âm thanh',
     icon: '',
     colors: {
       bass: '#DC2626',
@@ -35,8 +35,8 @@ const STYLES: StyleConfig[] = [
   {
     id: 'geometry',
     name: 'Geometry',
-    nameVi: 'Hinh Hoc',
-    description: 'Hinh hoc thieng lieng xoay chuyen',
+    nameVi: 'Hình Học',
+    description: 'Hình học thiêng liêng xoay chuyển theo nhịp',
     icon: '',
     colors: {
       bass: '#7C3AED',
@@ -49,8 +49,8 @@ const STYLES: StyleConfig[] = [
   {
     id: 'liquid',
     name: 'Liquid',
-    nameVi: 'Chat Long',
-    description: 'Mo phong chat long phan ung theo nhip',
+    nameVi: 'Chất Lỏng',
+    description: 'Mô phỏng chất lỏng sống động theo giai điệu',
     icon: '',
     colors: {
       bass: '#1E40AF',
@@ -63,8 +63,8 @@ const STYLES: StyleConfig[] = [
   {
     id: 'nebula',
     name: 'Nebula',
-    nameVi: 'Tinh Van',
-    description: 'Tinh van va bui vu tru lung linh',
+    nameVi: 'Tinh Vân',
+    description: 'Tinh vân và bụi vũ trụ lung linh huyền ảo',
     icon: '',
     colors: {
       bass: '#312E81',
@@ -93,26 +93,49 @@ export default function StyleSelector({
     <AnimatePresence>
       {isOpen && (
         <>
+          {/* Backdrop */}
           <motion.div
             initial={{ opacity: 0 }}
             animate={{ opacity: 1 }}
             exit={{ opacity: 0 }}
             onClick={onClose}
-            className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm"
+            className="fixed inset-0 z-40 bg-black/60 backdrop-blur-xl"
           />
 
+          {/* Modal */}
           <motion.div
-            initial={{ opacity: 0, y: 100 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: 100 }}
-            transition={{ type: 'spring', damping: 25, stiffness: 200 }}
-            className="fixed bottom-24 left-4 right-4 z-50 max-w-2xl mx-auto"
+            initial={{ opacity: 0, y: 50, scale: 0.95 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 50, scale: 0.95 }}
+            transition={{ type: 'spring', damping: 30, stiffness: 300 }}
+            className="fixed bottom-28 left-4 right-4 z-50 max-w-2xl mx-auto"
           >
-            <div className="bg-white/[0.05] backdrop-blur-xl border border-white/10 p-6 rounded-3xl">
-              <h3 className="text-lg font-semibold text-white mb-4">
-                Chon Phong Cach
-              </h3>
+            <div
+              className="rounded-[28px] p-6 md:p-8"
+              style={{
+                background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 100%)',
+                backdropFilter: 'blur(40px) saturate(150%)',
+                WebkitBackdropFilter: 'blur(40px) saturate(150%)',
+                boxShadow: '0 25px 50px -12px rgba(0,0,0,0.5), inset 0 1px 0 rgba(255,255,255,0.1)',
+                border: '1px solid rgba(255,255,255,0.08)',
+              }}
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between mb-6">
+                <h3 className="text-[20px] font-medium text-white tracking-tight">
+                  Chọn Phong Cách
+                </h3>
+                <button
+                  onClick={onClose}
+                  className="w-8 h-8 rounded-full flex items-center justify-center text-white/40 hover:text-white/70 hover:bg-white/10 transition-all"
+                >
+                  <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                    <path d="M18 6L6 18M6 6l12 12" />
+                  </svg>
+                </button>
+              </div>
 
+              {/* Style Grid */}
               <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
                 {STYLES.map((style) => (
                   <motion.button
@@ -123,47 +146,82 @@ export default function StyleSelector({
                       onStyleChange(style.id);
                       onClose();
                     }}
-                    className={`
-                      relative p-4 rounded-2xl text-left transition-all
-                      ${currentStyle === style.id
-                        ? 'bg-blue-500/20 border-2 border-blue-500'
-                        : 'bg-white/5 border border-white/10 hover:bg-white/10'
-                      }
-                    `}
+                    className="relative p-4 rounded-2xl text-left transition-all group"
+                    style={{
+                      background: currentStyle === style.id
+                        ? 'rgba(255,255,255,0.12)'
+                        : 'rgba(255,255,255,0.04)',
+                      boxShadow: currentStyle === style.id
+                        ? 'inset 0 0 0 2px rgba(255,255,255,0.3), 0 4px 12px rgba(0,0,0,0.2)'
+                        : 'inset 0 0 0 1px rgba(255,255,255,0.06)',
+                    }}
                   >
-                    <div className="flex gap-1 mb-3">
+                    {/* Color dots */}
+                    <div className="flex gap-1.5 mb-4">
                       {Object.values(style.colors).map((color, index) => (
-                        <div
+                        <motion.div
                           key={index}
-                          className="w-3 h-3 rounded-full"
-                          style={{ backgroundColor: color }}
+                          className="w-3.5 h-3.5 rounded-full"
+                          style={{
+                            backgroundColor: color,
+                            boxShadow: `0 2px 8px ${color}40`,
+                          }}
+                          initial={false}
+                          animate={{
+                            scale: currentStyle === style.id ? [1, 1.2, 1] : 1,
+                          }}
+                          transition={{
+                            duration: 0.6,
+                            delay: index * 0.1,
+                            repeat: currentStyle === style.id ? Infinity : 0,
+                            repeatDelay: 2,
+                          }}
                         />
                       ))}
                     </div>
 
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-sm font-medium text-white">
-                        {style.nameVi}
-                      </span>
-                    </div>
+                    {/* Title */}
+                    <h4 className="text-[15px] font-medium text-white mb-1.5">
+                      {style.nameVi}
+                    </h4>
 
-                    <p className="text-xs text-white/60 line-clamp-2">
+                    {/* Description */}
+                    <p className="text-[12px] text-white/50 leading-relaxed line-clamp-2">
                       {style.description}
                     </p>
 
+                    {/* Selected indicator */}
                     {currentStyle === style.id && (
                       <motion.div
-                        layoutId="activeStyle"
-                        className="absolute top-2 right-2 w-6 h-6 rounded-full bg-blue-500 flex items-center justify-center"
+                        initial={{ scale: 0, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="absolute top-3 right-3 w-6 h-6 rounded-full flex items-center justify-center"
+                        style={{
+                          background: 'rgba(255,255,255,0.9)',
+                          boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
+                        }}
                       >
-                        <svg className="w-4 h-4 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+                        <svg className="w-3.5 h-3.5 text-black" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={3}>
+                          <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                         </svg>
                       </motion.div>
                     )}
+
+                    {/* Hover glow */}
+                    <div
+                      className="absolute inset-0 rounded-2xl opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none"
+                      style={{
+                        background: `radial-gradient(circle at 50% 100%, ${Object.values(style.colors)[0]}20 0%, transparent 70%)`,
+                      }}
+                    />
                   </motion.button>
                 ))}
               </div>
+
+              {/* Footer hint */}
+              <p className="mt-5 text-center text-[11px] text-white/30">
+                Mỗi phong cách phản ứng khác nhau theo âm nhạc
+              </p>
             </div>
           </motion.div>
         </>

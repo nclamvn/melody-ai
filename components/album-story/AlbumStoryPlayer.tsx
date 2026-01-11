@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useMemo, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { AlbumStoryData, AlbumStoryPage, PageType } from "@/types/albumStory";
+import { AlbumStoryData, AlbumStoryPage, PageType, LyricsPageContent } from "@/types/albumStory";
+import { LyricLine } from "@/types";
 import CardFlipContainer from "./CardFlipContainer";
 import CoverPage from "./pages/CoverPage";
 import LyricsPage from "./pages/LyricsPage";
@@ -292,26 +293,40 @@ export default function AlbumStoryPlayer({
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [currentPage, setCurrentPage] = useState(0);
+  const [realLyrics, setRealLyrics] = useState<LyricLine[]>([]);
 
-  // Fetch story data from API
+  // Fetch story data and lyrics in parallel
   useEffect(() => {
-    const fetchStoryData = async () => {
+    const fetchData = async () => {
       setIsLoading(true);
       setError(null);
 
       try {
-        const response = await fetch("/api/album-story", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({ songId, title, artist, coverImage }),
-        });
+        // Fetch story data and lyrics in parallel
+        const [storyResponse, lyricsResponse] = await Promise.all([
+          fetch("/api/album-story", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ songId, title, artist, coverImage }),
+          }),
+          fetch(`/api/lyrics?title=${encodeURIComponent(title)}&artist=${encodeURIComponent(artist)}&duration=240`)
+        ]);
 
-        if (!response.ok) {
+        // Process story data
+        if (storyResponse.ok) {
+          const data = await storyResponse.json();
+          setStoryData(data);
+        } else {
           throw new Error("Failed to fetch story data");
         }
 
-        const data = await response.json();
-        setStoryData(data);
+        // Process lyrics data
+        if (lyricsResponse.ok) {
+          const lyricsData = await lyricsResponse.json();
+          if (lyricsData.success && lyricsData.lyrics?.length > 0) {
+            setRealLyrics(lyricsData.lyrics);
+          }
+        }
       } catch (err) {
         console.error("Error fetching album story:", err);
         setError("Không thể tải thông tin bài hát");
@@ -322,7 +337,7 @@ export default function AlbumStoryPlayer({
       }
     };
 
-    fetchStoryData();
+    fetchData();
   }, [songId, title, artist, coverImage]);
 
   // Render page content based on type
@@ -331,7 +346,18 @@ export default function AlbumStoryPlayer({
       case "cover":
         return <CoverPage content={page.content as any} />;
       case "lyrics":
-        return <LyricsPage content={page.content as any} currentTime={currentTime} />;
+        // Use real lyrics if available, otherwise fall back to API content
+        const lyricsContent: LyricsPageContent = realLyrics.length > 0
+          ? {
+              lines: realLyrics.map(line => ({
+                time: line.time,
+                text: line.text,
+                emotion: "calm" as const,
+              })),
+              hasTranslation: false,
+            }
+          : (page.content as LyricsPageContent);
+        return <LyricsPage content={lyricsContent} currentTime={currentTime} />;
       case "composition":
         return <CompositionPage content={page.content as any} />;
       case "author":
@@ -353,7 +379,7 @@ export default function AlbumStoryPlayer({
         {renderPageContent(page)}
       </div>
     ));
-  }, [storyData, currentTime]);
+  }, [storyData, currentTime, realLyrics]);
 
   const goToPage = (page: number) => {
     if (page === currentPage || !storyData) return;

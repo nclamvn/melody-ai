@@ -170,59 +170,73 @@ export function APIKeySetup({ onComplete, onSkip }: APIKeySetupProps) {
                 exit={{ opacity: 0, x: 20 }}
                 className="text-center"
               >
-                {/* Logo */}
+                {/* Logo - Apple Vision Style */}
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', delay: 0.2 }}
-                  className="w-20 h-20 mx-auto mb-6 rounded-2xl flex items-center justify-center"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', delay: 0.2, damping: 20 }}
+                  className="w-24 h-24 mx-auto mb-8 rounded-[28px] flex items-center justify-center relative"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(139,92,246,0.3) 0%, rgba(59,130,246,0.3) 100%)',
-                    boxShadow: '0 8px 32px rgba(139,92,246,0.3)',
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.12) 0%, rgba(255,255,255,0.04) 100%)',
+                    boxShadow: '0 0 0 1px rgba(255,255,255,0.08), 0 20px 40px -10px rgba(0,0,0,0.5), inset 0 1px 1px rgba(255,255,255,0.1)',
                   }}
                 >
-                  <svg width="40" height="40" viewBox="0 0 24 24" fill="none" className="text-white">
-                    <path d="M9 18V5l12-2v13" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round"/>
-                    <circle cx="6" cy="18" r="3" stroke="currentColor" strokeWidth="1.5"/>
-                    <circle cx="18" cy="16" r="3" stroke="currentColor" strokeWidth="1.5"/>
+                  {/* Subtle inner glow */}
+                  <div
+                    className="absolute inset-0 rounded-[28px]"
+                    style={{
+                      background: 'radial-gradient(circle at 50% 0%, rgba(255,255,255,0.15) 0%, transparent 60%)',
+                    }}
+                  />
+                  <svg width="44" height="44" viewBox="0 0 24 24" fill="none" className="relative z-10">
+                    <path
+                      d="M9 18V5l12-2v13"
+                      stroke="rgba(255,255,255,0.9)"
+                      strokeWidth="1.2"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                    />
+                    <circle cx="6" cy="18" r="3" stroke="rgba(255,255,255,0.9)" strokeWidth="1.2" fill="rgba(255,255,255,0.1)"/>
+                    <circle cx="18" cy="16" r="3" stroke="rgba(255,255,255,0.9)" strokeWidth="1.2" fill="rgba(255,255,255,0.1)"/>
                   </svg>
                 </motion.div>
 
-                <h1 className="text-2xl font-semibold text-white mb-3">
-                  Chào mừng đến Melody AI
+                <h1 className="text-[28px] font-medium text-white mb-3 tracking-tight">
+                  Melody AI
                 </h1>
-                <p className="text-white/60 mb-8 leading-relaxed">
-                  Trải nghiệm âm nhạc Việt Nam với AI thông minh.
-                  <br />
-                  Cần API Key để mở khóa đầy đủ tính năng.
+                <p className="text-white/50 mb-10 leading-relaxed text-[15px]">
+                  Trải nghiệm âm nhạc Việt Nam với AI
                 </p>
 
                 <div className="space-y-3">
+                  {/* Primary Button - Clean white style */}
                   <motion.button
-                    whileHover={{ scale: 1.02 }}
-                    whileTap={{ scale: 0.98 }}
+                    whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.95)' }}
+                    whileTap={{ scale: 0.99 }}
                     onClick={() => setStep('input')}
-                    className="w-full py-3.5 rounded-xl font-medium text-white"
+                    className="w-full py-4 rounded-2xl font-medium text-[15px] transition-all"
                     style={{
-                      background: 'linear-gradient(135deg, rgba(139,92,246,0.8) 0%, rgba(59,130,246,0.8) 100%)',
-                      boxShadow: '0 4px 16px rgba(139,92,246,0.4)',
+                      background: 'rgba(255,255,255,0.9)',
+                      color: '#000',
+                      boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
                     }}
                   >
                     Thiết lập API Key
                   </motion.button>
 
+                  {/* Secondary Button - Subtle glass */}
                   {onSkip && (
                     <motion.button
-                      whileHover={{ scale: 1.02 }}
-                      whileTap={{ scale: 0.98 }}
+                      whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.08)' }}
+                      whileTap={{ scale: 0.99 }}
                       onClick={onSkip}
-                      className="w-full py-3.5 rounded-xl font-medium text-white/60 hover:text-white/80 transition-colors"
+                      className="w-full py-4 rounded-2xl font-medium text-[15px] text-white/70 hover:text-white/90 transition-all"
                       style={{
-                        background: 'rgba(255,255,255,0.05)',
-                        border: '1px solid rgba(255,255,255,0.1)',
+                        background: 'rgba(255,255,255,0.04)',
+                        boxShadow: 'inset 0 0 0 1px rgba(255,255,255,0.08)',
                       }}
                     >
-                      Bỏ qua (Chế độ Demo)
+                      Tiếp tục với Demo
                     </motion.button>
                   )}
                 </div>
@@ -240,22 +254,22 @@ export function APIKeySetup({ onComplete, onSkip }: APIKeySetupProps) {
                 {/* Back button */}
                 <button
                   onClick={() => setStep('intro')}
-                  className="flex items-center gap-2 text-white/50 hover:text-white/80 transition-colors mb-6"
+                  className="flex items-center gap-1.5 text-white/40 hover:text-white/70 transition-colors mb-8 text-[13px]"
                 >
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <path d="M19 12H5M12 19l-7-7 7-7"/>
                   </svg>
                   Quay lại
                 </button>
 
-                <h2 className="text-xl font-semibold text-white mb-2">
-                  Nhập OpenAI API Key
+                <h2 className="text-[22px] font-medium text-white mb-2 tracking-tight">
+                  OpenAI API Key
                 </h2>
-                <p className="text-white/50 text-sm mb-6">
-                  Key được lưu trữ an toàn trên thiết bị của bạn
+                <p className="text-white/40 text-[14px] mb-6">
+                  Key được lưu an toàn trên thiết bị của bạn
                 </p>
 
-                {/* Input field */}
+                {/* Input field - Apple style */}
                 <div className="relative mb-4">
                   <input
                     type={showKey ? 'text' : 'password'}
@@ -264,34 +278,35 @@ export function APIKeySetup({ onComplete, onSkip }: APIKeySetupProps) {
                       setApiKey(e.target.value);
                       setError(null);
                     }}
-                    placeholder="sk-xxxxxxxxxxxxxxxxxxxxxxxx"
-                    className="w-full px-4 py-3.5 rounded-xl text-white placeholder-white/30 outline-none transition-all"
+                    placeholder="sk-..."
+                    className="w-full px-4 py-4 rounded-2xl text-white text-[15px] placeholder-white/25 outline-none transition-all font-mono"
                     style={{
-                      background: 'rgba(255,255,255,0.05)',
-                      border: error ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.1)',
-                      boxShadow: error ? '0 0 0 3px rgba(239,68,68,0.1)' : 'none',
+                      background: 'rgba(255,255,255,0.06)',
+                      boxShadow: error
+                        ? 'inset 0 0 0 1px rgba(239,68,68,0.4)'
+                        : 'inset 0 0 0 1px rgba(255,255,255,0.08)',
                     }}
                     onFocus={(e) => {
-                      e.target.style.border = '1px solid rgba(139,92,246,0.5)';
-                      e.target.style.boxShadow = '0 0 0 3px rgba(139,92,246,0.1)';
+                      e.target.style.boxShadow = 'inset 0 0 0 1px rgba(255,255,255,0.25)';
                     }}
                     onBlur={(e) => {
-                      e.target.style.border = error ? '1px solid rgba(239,68,68,0.5)' : '1px solid rgba(255,255,255,0.1)';
-                      e.target.style.boxShadow = error ? '0 0 0 3px rgba(239,68,68,0.1)' : 'none';
+                      e.target.style.boxShadow = error
+                        ? 'inset 0 0 0 1px rgba(239,68,68,0.4)'
+                        : 'inset 0 0 0 1px rgba(255,255,255,0.08)';
                     }}
                   />
                   <button
                     type="button"
                     onClick={() => setShowKey(!showKey)}
-                    className="absolute right-3 top-1/2 -translate-y-1/2 p-1.5 rounded-lg text-white/40 hover:text-white/70 transition-colors"
+                    className="absolute right-3 top-1/2 -translate-y-1/2 p-2 rounded-xl text-white/30 hover:text-white/60 hover:bg-white/5 transition-all"
                   >
                     {showKey ? (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M17.94 17.94A10.07 10.07 0 0112 20c-7 0-11-8-11-8a18.45 18.45 0 015.06-5.94M9.9 4.24A9.12 9.12 0 0112 4c7 0 11 8 11 8a18.5 18.5 0 01-2.16 3.19m-6.72-1.07a3 3 0 11-4.24-4.24"/>
                         <line x1="1" y1="1" x2="23" y2="23"/>
                       </svg>
                     ) : (
-                      <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                      <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
                         <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
                         <circle cx="12" cy="12" r="3"/>
                       </svg>
@@ -306,9 +321,9 @@ export function APIKeySetup({ onComplete, onSkip }: APIKeySetupProps) {
                       initial={{ opacity: 0, y: -10 }}
                       animate={{ opacity: 1, y: 0 }}
                       exit={{ opacity: 0, y: -10 }}
-                      className="text-red-400 text-sm mb-4 flex items-center gap-2"
+                      className="text-red-400/90 text-[13px] mb-4 flex items-center gap-2"
                     >
-                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                      <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                         <circle cx="12" cy="12" r="10"/>
                         <line x1="12" y1="8" x2="12" y2="12"/>
                         <line x1="12" y1="16" x2="12.01" y2="16"/>
@@ -318,16 +333,17 @@ export function APIKeySetup({ onComplete, onSkip }: APIKeySetupProps) {
                   )}
                 </AnimatePresence>
 
-                {/* Submit button */}
+                {/* Submit button - Clean white */}
                 <motion.button
-                  whileHover={{ scale: 1.02 }}
-                  whileTap={{ scale: 0.98 }}
+                  whileHover={{ scale: 1.01, backgroundColor: 'rgba(255,255,255,0.95)' }}
+                  whileTap={{ scale: 0.99 }}
                   onClick={validateAndSave}
                   disabled={isValidating || !apiKey.trim()}
-                  className="w-full py-3.5 rounded-xl font-medium text-white disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2"
+                  className="w-full py-4 rounded-2xl font-medium text-[15px] disabled:opacity-40 disabled:cursor-not-allowed flex items-center justify-center gap-2 transition-all"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(139,92,246,0.8) 0%, rgba(59,130,246,0.8) 100%)',
-                    boxShadow: '0 4px 16px rgba(139,92,246,0.4)',
+                    background: 'rgba(255,255,255,0.9)',
+                    color: '#000',
+                    boxShadow: '0 2px 8px rgba(0,0,0,0.2)',
                   }}
                 >
                   {isValidating ? (
@@ -335,48 +351,37 @@ export function APIKeySetup({ onComplete, onSkip }: APIKeySetupProps) {
                       <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ duration: 1, repeat: Infinity, ease: 'linear' }}
-                        className="w-5 h-5 border-2 border-white/30 border-t-white rounded-full"
+                        className="w-4 h-4 border-2 border-black/20 border-t-black/60 rounded-full"
                       />
-                      Đang xác thực...
+                      Đang xác thực
                     </>
                   ) : (
                     'Xác nhận'
                   )}
                 </motion.button>
 
-                {/* Info box */}
-                <div
-                  className="mt-6 p-4 rounded-xl"
-                  style={{
-                    background: 'rgba(59,130,246,0.1)',
-                    border: '1px solid rgba(59,130,246,0.2)',
-                  }}
-                >
-                  <h4 className="text-blue-400 font-medium text-sm mb-2 flex items-center gap-2">
-                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                      <circle cx="12" cy="12" r="10"/>
-                      <path d="M12 16v-4M12 8h.01"/>
-                    </svg>
-                    Cách lấy API Key
-                  </h4>
-                  <ol className="text-white/50 text-sm space-y-1.5 list-decimal list-inside">
-                    <li>Truy cập <span className="text-blue-400">platform.openai.com</span></li>
-                    <li>Đăng nhập hoặc tạo tài khoản</li>
-                    <li>Vào Settings → API Keys</li>
-                    <li>Tạo key mới và copy</li>
+                {/* Info box - Minimalist */}
+                <div className="mt-6 pt-6 border-t border-white/[0.06]">
+                  <p className="text-white/30 text-[12px] mb-3 uppercase tracking-wider">Hướng dẫn</p>
+                  <ol className="text-white/50 text-[13px] space-y-2">
+                    <li className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center text-[11px] text-white/40">1</span>
+                      Truy cập platform.openai.com
+                    </li>
+                    <li className="flex items-center gap-2">
+                      <span className="w-5 h-5 rounded-full bg-white/5 flex items-center justify-center text-[11px] text-white/40">2</span>
+                      Settings → API Keys → Create
+                    </li>
                   </ol>
                 </div>
 
-                {/* Security note */}
-                <div className="mt-4 flex items-start gap-2 text-white/40 text-xs">
-                  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="mt-0.5 flex-shrink-0">
+                {/* Security note - Subtle */}
+                <div className="mt-6 flex items-center justify-center gap-2 text-white/25 text-[11px]">
+                  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
                     <rect x="3" y="11" width="18" height="11" rx="2" ry="2"/>
                     <path d="M7 11V7a5 5 0 0110 0v4"/>
                   </svg>
-                  <span>
-                    API Key được mã hóa và lưu trữ cục bộ trên thiết bị.
-                    Không bao giờ được gửi đến server của chúng tôi.
-                  </span>
+                  <span>Lưu trữ cục bộ, không gửi đến server</span>
                 </div>
               </motion.div>
             )}
@@ -385,31 +390,31 @@ export function APIKeySetup({ onComplete, onSkip }: APIKeySetupProps) {
             {step === 'success' && (
               <motion.div
                 key="success"
-                initial={{ opacity: 0, scale: 0.9 }}
+                initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="text-center py-8"
+                className="text-center py-10"
               >
                 <motion.div
-                  initial={{ scale: 0 }}
-                  animate={{ scale: 1 }}
-                  transition={{ type: 'spring', delay: 0.1 }}
-                  className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center"
+                  initial={{ scale: 0, opacity: 0 }}
+                  animate={{ scale: 1, opacity: 1 }}
+                  transition={{ type: 'spring', delay: 0.1, damping: 20 }}
+                  className="w-20 h-20 mx-auto mb-6 rounded-full flex items-center justify-center relative"
                   style={{
-                    background: 'linear-gradient(135deg, rgba(34,197,94,0.3) 0%, rgba(16,185,129,0.3) 100%)',
-                    boxShadow: '0 8px 32px rgba(34,197,94,0.3)',
+                    background: 'linear-gradient(180deg, rgba(255,255,255,0.1) 0%, rgba(255,255,255,0.04) 100%)',
+                    boxShadow: '0 0 0 1px rgba(255,255,255,0.08), inset 0 1px 1px rgba(255,255,255,0.1)',
                   }}
                 >
                   <motion.svg
-                    initial={{ pathLength: 0 }}
-                    animate={{ pathLength: 1 }}
-                    transition={{ duration: 0.5, delay: 0.3 }}
-                    width="40"
-                    height="40"
+                    initial={{ pathLength: 0, opacity: 0 }}
+                    animate={{ pathLength: 1, opacity: 1 }}
+                    transition={{ duration: 0.4, delay: 0.3 }}
+                    width="32"
+                    height="32"
                     viewBox="0 0 24 24"
                     fill="none"
                     stroke="currentColor"
                     strokeWidth="2"
-                    className="text-green-400"
+                    className="text-white/80"
                   >
                     <motion.path
                       initial={{ pathLength: 0 }}
@@ -422,11 +427,11 @@ export function APIKeySetup({ onComplete, onSkip }: APIKeySetupProps) {
                   </motion.svg>
                 </motion.div>
 
-                <h2 className="text-xl font-semibold text-white mb-2">
-                  Thiết lập thành công!
+                <h2 className="text-[20px] font-medium text-white mb-2 tracking-tight">
+                  Sẵn sàng
                 </h2>
-                <p className="text-white/50">
-                  Đang chuyển đến ứng dụng...
+                <p className="text-white/40 text-[14px]">
+                  Đang khởi động...
                 </p>
               </motion.div>
             )}
@@ -447,15 +452,19 @@ interface APIKeyGateProps {
 }
 
 export function APIKeyGate({ children, allowDemo = true }: APIKeyGateProps) {
-  const { isLoaded, isSetupComplete } = useAPIKey();
+  const { apiKey, isLoaded } = useAPIKey();
   const [showSetup, setShowSetup] = useState(false);
   const [skipped, setSkipped] = useState(false);
 
   useEffect(() => {
-    if (isLoaded && !isSetupComplete()) {
-      setShowSetup(true);
+    if (isLoaded) {
+      // Always show setup if no API key (even if previously skipped)
+      // User can skip again if they want demo mode
+      if (!apiKey) {
+        setShowSetup(true);
+      }
     }
-  }, [isLoaded, isSetupComplete]);
+  }, [isLoaded, apiKey]);
 
   if (!isLoaded) {
     return (
@@ -475,7 +484,8 @@ export function APIKeyGate({ children, allowDemo = true }: APIKeyGateProps) {
         onComplete={() => setShowSetup(false)}
         onSkip={allowDemo ? () => {
           setSkipped(true);
-          localStorage.setItem(SETUP_COMPLETE_KEY, 'true');
+          // Don't save to localStorage - just skip for this session
+          // Next time user opens app, they'll see setup again
         } : undefined}
       />
     );

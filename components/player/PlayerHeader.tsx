@@ -9,6 +9,7 @@ interface PlayerHeaderProps {
   autoHide?: boolean;
   onLike?: () => void;
   onShare?: () => void;
+  onBack?: () => boolean; // Return true if handled, false to use default router.back()
   isLiked?: boolean;
 }
 
@@ -16,6 +17,7 @@ export default function PlayerHeader({
   autoHide = true,
   onLike,
   onShare,
+  onBack,
   isLiked = false,
 }: PlayerHeaderProps) {
   const router = useRouter();
@@ -83,7 +85,13 @@ export default function PlayerHeader({
             <motion.button
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
-              onClick={() => router.back()}
+              onClick={() => {
+                // If onBack is provided and handles the action, don't use router.back()
+                if (onBack && onBack()) {
+                  return;
+                }
+                router.back();
+              }}
               className="liquid-glass w-10 h-10 rounded-full flex items-center justify-center"
               aria-label="Quay lại"
             >

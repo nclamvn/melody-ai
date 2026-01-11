@@ -5,13 +5,12 @@ import { useSearchParams, useRouter } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import Image from "next/image";
 import AuroraBackground from "@/components/background/AuroraBackground";
-import PlayerHeader from "@/components/player/PlayerHeader";
 import ProgressBar from "@/components/player/ProgressBar";
 import PlayerControls from "@/components/player/PlayerControls";
 import VolumeControl from "@/components/player/VolumeControl";
 import LyricsPanel from "@/components/player/LyricsPanel";
 import YouTubePlayer, { YT_STATES } from "@/components/player/YouTubePlayer";
-import { MusicNote, AlignLeft, Book } from "iconoir-react";
+import { MusicNote, AlignLeft, Book, ArrowLeft } from "iconoir-react";
 import { LyricLine } from "@/types";
 import { cleanSongTitle, cleanArtistName } from "@/utils/cleanSongTitle";
 import SongStoryPanel from "@/components/player/SongStoryPanel";
@@ -187,8 +186,43 @@ function PlayerContent() {
         onTimeUpdate={handleTimeUpdate}
       />
 
-      {/* Header */}
-      <PlayerHeader autoHide={isPlaying} />
+      {/* Persistent Back Button - Always Visible */}
+      <motion.button
+        initial={{ opacity: 0, x: -20 }}
+        animate={{ opacity: 1, x: 0 }}
+        onClick={() => {
+          // Close panels in order of priority before navigating back
+          if (showDJMixer) {
+            setShowDJMixer(false);
+            return;
+          }
+          if (showAlbumStory) {
+            setShowAlbumStory(false);
+            return;
+          }
+          if (showMobileStory) {
+            setShowMobileStory(false);
+            return;
+          }
+          if (showLyrics) {
+            setShowLyrics(false);
+            return;
+          }
+          router.back();
+        }}
+        className="fixed top-4 left-4 z-50 w-11 h-11 rounded-full flex items-center justify-center transition-all"
+        style={{
+          background: 'rgba(255,255,255,0.08)',
+          backdropFilter: 'blur(20px)',
+          WebkitBackdropFilter: 'blur(20px)',
+          boxShadow: '0 4px 20px rgba(0,0,0,0.3), inset 0 0 0 1px rgba(255,255,255,0.1)',
+        }}
+        whileHover={{ scale: 1.05, background: 'rgba(255,255,255,0.12)' }}
+        whileTap={{ scale: 0.95 }}
+        aria-label="Quay lại"
+      >
+        <ArrowLeft className="w-5 h-5 text-white/80" strokeWidth={2} />
+      </motion.button>
 
       {/* Main Content - Fixed height container */}
       <div
